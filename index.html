@@ -110,7 +110,8 @@
       color: #373D8D;
     }
     .modal-content p {
-      color: #F59E0B; /* Warm orange for a friendlier look */
+      /* Убираем жёлтый цвет, оставляем цвет текста по умолчанию (чёрный) */
+      /* color: #F59E0B; */
     }
     .modal-content button {
       background-color: #373D8D;
@@ -132,6 +133,18 @@
       padding: 10px;
       font-size: 0.8rem;
       color: inherit; /* Inherit default color (likely black) */
+    }
+    /* Стили для текстовой ссылки "Админка" */
+    .admin-link {
+      display: block;
+      text-align: center;
+      color: #373D8D; /* Синий цвет текста */
+      font-size: 0.9rem; /* Меньший размер шрифта */
+      margin-top: 0.5rem;
+      text-decoration: underline; /* Подчёркивание как у ссылки */
+    }
+    .admin-link:hover {
+      color: #2A3171; /* Цвет при наведении */
     }
   </style>
 </head>
@@ -163,7 +176,8 @@
       </select>
     </div>
     <button id="start-btn" class="w-full bg-[#373D8D] text-white p-2 rounded-md mb-2 hover:bg-[#2A3171]">Начать практику</button>
-    <button id="admin-btn" class="w-full bg-[#D72638] text-white p-2 rounded-md hover:bg-[#B72030]">Админка</button>
+    <!-- Заменяем кнопку на текстовую ссылку -->
+    <a href="#" id="admin-btn" class="admin-link">Админка</a>
   </div>
 
   <div id="admin-screen" class="hidden bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
@@ -378,7 +392,8 @@
     levelSelect.addEventListener('change', populateLessons);
 
     // Go to admin screen
-    adminBtn.addEventListener('click', () => {
+    adminBtn.addEventListener('click', (e) => {
+      e.preventDefault(); // Предотвращаем стандартное поведение ссылки
       startScreen.classList.add('hidden');
       adminScreen.classList.remove('hidden');
     });
