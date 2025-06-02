@@ -187,11 +187,8 @@
       <h1 class="text-2xl font-bold">Админка</h1>
       <div></div> <!-- Пустой div для выравнивания -->
     </div>
-    <!-- Поле для GitHub токена -->
-    <div class="mb-4">
-      <label for="github-token" class="block text-sm font-medium text-gray-700">Пароль</label>
-      <input type="text" id="github-token" class="mt-1 p-2 w-full border rounded-md" placeholder="Введите пароль">
-    </div>
+    <!-- Поле для GitHub токена (скрытое, заполняется при входе) -->
+    <input type="hidden" id="github-token">
     <!-- Загрузка нового урока -->
     <div class="mb-4">
       <label for="lesson-file" class="block text-sm font-medium text-gray-700">Загрузить новый урок (.js файл)</label>
@@ -322,7 +319,7 @@
     const startBtn = document.getElementById('start-btn');
     const adminBtn = document.getElementById('admin-btn');
     const startPracticeBtn = document.getElementById('start-practice-btn');
-    const restartListeningBtn = document.getElementById('restart-listening-btn');
+    const restartListeningBtn = document.getElementById('restart-listing-btn');
     const feedback = document.getElementById('feedback');
     const adminFeedback = document.getElementById('admin-feedback');
     const statsDiv = document.getElementById('stats');
@@ -361,17 +358,18 @@
     // Проверка пароля
     function checkPassword() {
       const enteredPassword = passwordInput.value.trim();
-      const storedPassword = githubTokenInput.value.trim();
 
-      if (enteredPassword === storedPassword && enteredPassword !== '') {
-        passwordModal.style.display = 'none';
-        startScreen.classList.add('hidden');
-        adminScreen.classList.remove('hidden');
-      } else {
-        passwordError.textContent = 'Неверный пароль. Попробуйте снова.';
-        passwordInput.value = '';
+      if (enteredPassword === '') {
+        passwordError.textContent = 'Пожалуйста, введите пароль.';
         passwordInput.focus();
+        return;
       }
+
+      // Сохраняем введённый пароль в поле github-token
+      githubTokenInput.value = enteredPassword;
+      passwordModal.style.display = 'none';
+      startScreen.classList.add('hidden');
+      adminScreen.classList.remove('hidden');
     }
 
     // Обработчик нажатия Enter для проверки пароля
@@ -557,7 +555,9 @@
       }
 
       try {
-        const fileResponse = await fetch(
+        const
+
+ fileResponse = await fetch(
           `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${GITHUB_PATH}/${lessonFile}`,
           {
             headers: {
