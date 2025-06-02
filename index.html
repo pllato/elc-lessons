@@ -319,7 +319,7 @@
     const startBtn = document.getElementById('start-btn');
     const adminBtn = document.getElementById('admin-btn');
     const startPracticeBtn = document.getElementById('start-practice-btn');
-    const restartListeningBtn = document.getElementById('restart-listing-btn');
+    const restartListeningBtn = document.getElementById('restart-listening-btn'); // Исправлен ID
     const feedback = document.getElementById('feedback');
     const adminFeedback = document.getElementById('admin-feedback');
     const statsDiv = document.getElementById('stats');
@@ -349,10 +349,12 @@
     // Показать модальное окно пароля при клике на "Админка"
     adminBtn.addEventListener('click', (e) => {
       e.preventDefault();
-      passwordModal.style.display = 'block';
-      passwordInput.value = '';
-      passwordError.textContent = '';
-      passwordInput.focus();
+      if (passwordModal) {
+        passwordModal.style.display = 'block';
+        passwordInput.value = '';
+        passwordError.textContent = '';
+        passwordInput.focus();
+      }
     });
 
     // Проверка пароля
@@ -368,8 +370,10 @@
       // Сохраняем введённый пароль в поле github-token
       githubTokenInput.value = enteredPassword;
       passwordModal.style.display = 'none';
-      startScreen.classList.add('hidden');
-      adminScreen.classList.remove('hidden');
+      if (startScreen && adminScreen) {
+        startScreen.classList.add('hidden');
+        adminScreen.classList.remove('hidden');
+      }
     }
 
     // Обработчик нажатия Enter для проверки пароля
@@ -383,11 +387,19 @@
     async function loadLessonsFromGitHub() {
       lessonsData.length = 0;
       deleteLessonSelect.innerHTML = '<option value="">Выберите урок для удаления</option>';
+      const token = githubTokenInput.value.trim();
+      const headers = {
+        'Accept': 'application/vnd.github.v3+json'
+      };
+      
+      // Если токен доступен, добавляем его в заголовки для авторизации
+      if (token) {
+        headers['Authorization'] = `token ${token}`;
+      }
+
       try {
         const response = await fetch(`https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${GITHUB_PATH}`, {
-          headers: {
-            'Accept': 'application/vnd.github.v3+json'
-          }
+          headers: headers
         });
         if (!response.ok) throw new Error(`GitHub API error: ${response.statusText}`);
         const files = await response.json();
@@ -555,9 +567,7 @@
       }
 
       try {
-        const
-
- fileResponse = await fetch(
+        const fileResponse = await fetch(
           `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${GITHUB_PATH}/${lessonFile}`,
           {
             headers: {
@@ -666,6 +676,7 @@
     });
 
     function goBackToStart() {
+      // Сбрасываем состояние
       progress = {};
       spokenHistory = [];
       logEntries = [];
@@ -676,22 +687,30 @@
       currentLessonData = null;
       if (recognition) recognition.stop();
 
-      startPracticeBtn.textContent = 'Начать практику';
-      startPracticeBtn.classList.remove('bg-gray-400', 'cursor-not-allowed');
-      startPracticeBtn.classList.add('bg-[#373D8D]', 'hover:bg-[#2A3171]');
-      startPracticeBtn.disabled = false;
-      restartListeningBtn.classList.add('hidden');
-      completionModal.style.display = 'none';
-      feedback.textContent = '';
-      adminFeedback.textContent = '';
-      statsDiv.innerHTML = '';
-      logDiv.innerHTML = '';
-      modalLog.innerHTML = '';
+      // Проверяем, что элементы существуют, прежде чем менять их классы
+      if (startPracticeBtn) {
+        startPracticeBtn.textContent = 'Начать практику';
+        startPracticeBtn.classList.remove('bg-gray-400', 'cursor-not-allowed');
+        startPracticeBtn.classList.add('bg-[#373D8D]', 'hover:bg-[#2A3171]');
+        startPracticeBtn.disabled = false;
+      }
+      if (restartListeningBtn) {
+        restartListeningBtn.classList.add('hidden');
+      }
+      if (completionModal) {
+        completionModal.style.display = 'none';
+      }
+      if (feedback) feedback.textContent = '';
+      if (adminFeedback) adminFeedback.textContent = '';
+      if (statsDiv) statsDiv.innerHTML = '';
+      if (logDiv) logDiv.innerHTML = '';
+      if (modalLog) modalLog.innerHTML = '';
       updateProgressBars();
 
-      practiceScreen.classList.add('hidden');
-      adminScreen.classList.add('hidden');
-      startScreen.classList.remove('hidden');
+      // Переключаем экраны
+      if (practiceScreen) practiceScreen.classList.add('hidden');
+      if (adminScreen) adminScreen.classList.add('hidden');
+      if (startScreen) startScreen.classList.remove('hidden');
     }
 
     startPracticeBtn.addEventListener('click', () => {
@@ -726,21 +745,29 @@
       try {
         recognition.start();
         isListening = true;
-        startPracticeBtn.textContent = 'Слушаю...';
-        startPracticeBtn.classList.remove('bg-[#373D8D]', 'hover:bg-[#2A3171]');
-        startPracticeBtn.classList.add('bg-gray-400', 'cursor-not-allowed');
-        startPracticeBtn.disabled = true;
-        restartListeningBtn.classList.add('hidden');
+        if (startPracticeBtn) {
+          startPracticeBtn.textContent = 'Слушаю...';
+          startPracticeBtn.classList.remove('bg-[#373D8D]', 'hover:bg-[#2A3171]');
+          startPracticeBtn.classList.add('bg-gray-400', 'cursor-not-allowed');
+          startPracticeBtn.disabled = true;
+        }
+        if (restartListeningBtn) {
+          restartListeningBtn.classList.add('hidden');
+        }
         feedback.textContent = 'Говори любой пример из структур ниже.';
         lastSpeechTime = Date.now();
       } catch (error) {
         feedback.textContent = 'Ошибка при запуске распознавания речи: ' + error.message + '. Проверьте доступ к микрофону и попробуйте снова.';
         isListening = false;
-        startPracticeBtn.textContent = 'Начать практику';
-        startPracticeBtn.classList.remove('bg-gray-400', 'cursor-not-allowed');
-        startPracticeBtn.classList.add('bg-[#373D8D]', 'hover:bg-[#2A3171]');
-        startPracticeBtn.disabled = false;
-        restartListeningBtn.classList.remove('hidden');
+        if (startPracticeBtn) {
+          startPracticeBtn.textContent = 'Начать практику';
+          startPracticeBtn.classList.remove('bg-gray-400', 'cursor-not-allowed');
+          startPracticeBtn.classList.add('bg-[#373D8D]', 'hover:bg-[#2A3171]');
+          startPracticeBtn.disabled = false;
+        }
+        if (restartListeningBtn) {
+          restartListeningBtn.classList.remove('hidden');
+        }
       }
     }
 
@@ -872,11 +899,15 @@
       recognition.onerror = (event) => {
         feedback.textContent = 'Ошибка в распознавании: ' + event.error + '. Попробуйте снова или проверьте доступ к микрофону.';
         isListening = false;
-        restartListeningBtn.classList.remove('hidden');
-        startPracticeBtn.textContent = 'Начать практику';
-        startPracticeBtn.classList.remove('bg-gray-400', 'cursor-not-allowed');
-        startPracticeBtn.classList.add('bg-[#373D8D]', 'hover:bg-[#2A3171]');
-        startPracticeBtn.disabled = false;
+        if (startPracticeBtn) {
+          startPracticeBtn.textContent = 'Начать практику';
+          startPracticeBtn.classList.remove('bg-gray-400', 'cursor-not-allowed');
+          startPracticeBtn.classList.add('bg-[#373D8D]', 'hover:bg-[#2A3171]');
+          startPracticeBtn.disabled = false;
+        }
+        if (restartListeningBtn) {
+          restartListeningBtn.classList.remove('hidden');
+        }
       };
 
       recognition.onend = () => {
@@ -884,11 +915,15 @@
         if (currentTime - lastSpeechTime > 10000) {
           feedback.textContent = 'Давно не слышу речи. Перезапускаю...';
           isListening = false;
-          restartListeningBtn.classList.remove('hidden');
-          startPracticeBtn.textContent = 'Начать практику';
-          startPracticeBtn.classList.remove('bg-gray-400', 'cursor-not-allowed');
-          startPracticeBtn.classList.add('bg-[#373D8D]', 'hover:bg-[#2A3171]');
-          startPracticeBtn.disabled = false;
+          if (startPracticeBtn) {
+            startPracticeBtn.textContent = 'Начать практику';
+            startPracticeBtn.classList.remove('bg-gray-400', 'cursor-not-allowed');
+            startPracticeBtn.classList.add('bg-[#373D8D]', 'hover:bg-[#2A3171]');
+            startPracticeBtn.disabled = false;
+          }
+          if (restartListeningBtn) {
+            restartListeningBtn.classList.remove('hidden');
+          }
           return;
         }
 
@@ -899,11 +934,15 @@
             } catch (error) {
               feedback.textContent = 'Ошибка при перезапуске распознавания: ' + error.message + '. Попробуйте снова.';
               isListening = false;
-              restartListeningBtn.classList.remove('hidden');
-              startPracticeBtn.textContent = 'Начать практику';
-              startPracticeBtn.classList.remove('bg-gray-400', 'cursor-not-allowed');
-              startPracticeBtn.classList.add('bg-[#373D8D]', 'hover:bg-[#2A3171]');
-              startPracticeBtn.disabled = false;
+              if (startPracticeBtn) {
+                startPracticeBtn.textContent = 'Начать практику';
+                startPracticeBtn.classList.remove('bg-gray-400', 'cursor-not-allowed');
+                startPracticeBtn.classList.add('bg-[#373D8D]', 'hover:bg-[#2A3171]');
+                startPracticeBtn.disabled = false;
+              }
+              if (restartListeningBtn) {
+                restartListeningBtn.classList.remove('hidden');
+              }
             }
           }, 500);
         }
