@@ -1,43 +1,4 @@
-<script type="text/javascript">
-        var gk_isXlsx = false;
-        var gk_xlsxFileLookup = {};
-        var gk_fileData = {};
-        function filledCell(cell) {
-          return cell !== '' && cell != null;
-        }
-        function loadFileData(filename) {
-        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
-            try {
-                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
-                var firstSheetName = workbook.SheetNames[0];
-                var worksheet = workbook.Sheets[firstSheetName];
-
-                // Convert sheet to JSON to filter blank rows
-                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
-                // Filter out blank rows (rows where all cells are empty, null, or undefined)
-                var filteredData = jsonData.filter(row => row.some(filledCell));
-
-                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
-                var headerRowIndex = filteredData.findIndex((row, index) =>
-                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
-                );
-                // Fallback
-                if (headerRowIndex === -1 || headerRowIndex > 25) {
-                  headerRowIndex = 0;
-                }
-
-                // Convert filtered JSON back to CSV
-                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
-                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
-                return csv;
-            } catch (e) {
-                console.error(e);
-                return "";
-            }
-        }
-        return gk_fileData[filename] || "";
-        }
-        </script><!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -73,6 +34,13 @@
       font-family: 'Trebuchet MS', sans-serif;
       font-size: 0.8rem;
       color: #373D8D;
+    }
+    /* Дополнительный текст под логотипом */
+    .logo-description {
+      font-family: 'Trebuchet MS', sans-serif;
+      font-size: 0.7rem;
+      color: #373D8D;
+      margin-top: 0.2rem;
     }
     /* Неиспользуемый паттерн фона */
     .pattern-bg {
@@ -156,6 +124,20 @@
     .admin-link:hover {
       color: #2A3171; /* Тёмно-синий при наведении */
     }
+    /* Стили для модального окна ввода пароля */
+    .password-modal-input {
+      width: 100%;
+      padding: 8px;
+      margin: 10px 0;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 1rem;
+    }
+    .password-error {
+      color: #D72638; /* Красный цвет для ошибки */
+      font-size: 0.9rem;
+      margin-top: 0.5rem;
+    }
   </style>
 </head>
 <body class="flex items-center justify-center min-h-screen">
@@ -165,6 +147,8 @@
     <div class="text-center mb-6">
       <h1 class="logo text-4xl font-bold">ELC</h1>
       <p class="logo-subtext">English Lifestyle Communication</p>
+      <!-- Добавляем текст "Тренажер грамматических структур" -->
+      <p class="logo-description">Тренажер грамматических структур</p>
     </div>
     <!-- Поле для имени -->
     <div class="mb-4">
@@ -205,8 +189,8 @@
     </div>
     <!-- Поле для GitHub токена -->
     <div class="mb-4">
-      <label for="github-token" class="block text-sm font-medium text-gray-700">GitHub Token</label>
-      <input type="text" id="github-token" class="mt-1 p-2 w-full border rounded-md" placeholder="Введите GitHub Personal Access Token">
+      <label for="github-token" class="block text-sm font-medium text-gray-700">Пароль</label>
+      <input type="text" id="github-token" class="mt-1 p-2 w-full border rounded-md" placeholder="Введите пароль">
     </div>
     <!-- Загрузка нового урока -->
     <div class="mb-4">
@@ -266,8 +250,19 @@
         <p id="congratulations" class="text-md mb-4"></p>
         <p class="text-sm mb-2">Результаты высланы на проверку преподавателю.</p>
         <div class="modal-log" id="modal-log"></div>
-        <button onclick="startNewTraining()" class="mt-4">Начать новую тренировку</button>
+        <!-- Кнопка переименована в "Завершить" -->
+        <button onclick="startNewTraining()" class="mt-4">Завершить</button>
       </div>
+    </div>
+  </div>
+
+  <!-- Модальное окно для ввода пароля -->
+  <div id="password-modal" class="modal">
+    <div class="modal-content">
+      <h2 class="text-2xl font-bold mb-2">Введите пароль</h2>
+      <input type="password" id="password-input" class="password-modal-input" placeholder="Пароль">
+      <p id="password-error" class="password-error"></p>
+      <button onclick="checkPassword()" class="mt-4">Подтвердить</button>
     </div>
   </div>
 
@@ -350,6 +345,41 @@
     const uploadIndexJsBtn = document.getElementById('upload-index-js-btn');
     const deleteLessonSelect = document.getElementById('delete-lesson');
     const deleteLessonBtn = document.getElementById('delete-lesson-btn');
+    const passwordModal = document.getElementById('password-modal');
+    const passwordInput = document.getElementById('password-input');
+    const passwordError = document.getElementById('password-error');
+
+    // Показать модальное окно пароля при клике на "Админка"
+    adminBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      passwordModal.style.display = 'block';
+      passwordInput.value = '';
+      passwordError.textContent = '';
+      passwordInput.focus();
+    });
+
+    // Проверка пароля
+    function checkPassword() {
+      const enteredPassword = passwordInput.value.trim();
+      const storedPassword = githubTokenInput.value.trim();
+
+      if (enteredPassword === storedPassword && enteredPassword !== '') {
+        passwordModal.style.display = 'none';
+        startScreen.classList.add('hidden');
+        adminScreen.classList.remove('hidden');
+      } else {
+        passwordError.textContent = 'Неверный пароль. Попробуйте снова.';
+        passwordInput.value = '';
+        passwordInput.focus();
+      }
+    }
+
+    // Обработчик нажатия Enter для проверки пароля
+    passwordInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        checkPassword();
+      }
+    });
 
     // Загрузка уроков с GitHub
     async function loadLessonsFromGitHub() {
@@ -412,12 +442,6 @@
     loadLessonsFromGitHub();
     levelSelect.addEventListener('change', populateLessons);
 
-    adminBtn.addEventListener('click', (e) => {
-      e.preventDefault();
-      startScreen.classList.add('hidden');
-      adminScreen.classList.remove('hidden');
-    });
-
     async function uploadFileToGitHub(file, filePath, token, successMessage) {
       if (!file) {
         adminFeedback.textContent = `Пожалуйста, выберите файл для ${filePath}.`;
@@ -425,7 +449,7 @@
       }
 
       if (!token) {
-        adminFeedback.textContent = 'Пожалуйста, введите GitHub Personal Access Token.';
+        adminFeedback.textContent = 'Пожалуйста, введите пароль.';
         return false;
       }
 
@@ -528,7 +552,7 @@
       }
 
       if (!token) {
-        adminFeedback.textContent = 'Пожалуйста, введите GitHub Personal Access Token.';
+        adminFeedback.textContent = 'Пожалуйста, введите пароль.';
         return;
       }
 
