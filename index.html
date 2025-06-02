@@ -354,6 +354,8 @@
         passwordInput.value = '';
         passwordError.textContent = '';
         passwordInput.focus();
+      } else {
+        console.error('Password modal not found');
       }
     });
 
@@ -373,6 +375,8 @@
       if (startScreen && adminScreen) {
         startScreen.classList.add('hidden');
         adminScreen.classList.remove('hidden');
+      } else {
+        console.error('startScreen or adminScreen not found');
       }
     }
 
@@ -676,6 +680,7 @@
     });
 
     function goBackToStart() {
+      console.log('goBackToStart called');
       // Сбрасываем состояние
       progress = {};
       spokenHistory = [];
@@ -693,12 +698,18 @@
         startPracticeBtn.classList.remove('bg-gray-400', 'cursor-not-allowed');
         startPracticeBtn.classList.add('bg-[#373D8D]', 'hover:bg-[#2A3171]');
         startPracticeBtn.disabled = false;
+      } else {
+        console.error('startPracticeBtn not found');
       }
       if (restartListeningBtn) {
         restartListeningBtn.classList.add('hidden');
+      } else {
+        console.error('restartListeningBtn not found');
       }
       if (completionModal) {
         completionModal.style.display = 'none';
+      } else {
+        console.error('completionModal not found');
       }
       if (feedback) feedback.textContent = '';
       if (adminFeedback) adminFeedback.textContent = '';
@@ -750,9 +761,13 @@
           startPracticeBtn.classList.remove('bg-[#373D8D]', 'hover:bg-[#2A3171]');
           startPracticeBtn.classList.add('bg-gray-400', 'cursor-not-allowed');
           startPracticeBtn.disabled = true;
+        } else {
+          console.error('startPracticeBtn not found in startListening');
         }
         if (restartListeningBtn) {
           restartListeningBtn.classList.add('hidden');
+        } else {
+          console.error('restartListeningBtn not found in startListening');
         }
         feedback.textContent = 'Говори любой пример из структур ниже.';
         lastSpeechTime = Date.now();
@@ -764,9 +779,13 @@
           startPracticeBtn.classList.remove('bg-gray-400', 'cursor-not-allowed');
           startPracticeBtn.classList.add('bg-[#373D8D]', 'hover:bg-[#2A3171]');
           startPracticeBtn.disabled = false;
+        } else {
+          console.error('startPracticeBtn not found in startListening error handler');
         }
         if (restartListeningBtn) {
           restartListeningBtn.classList.remove('hidden');
+        } else {
+          console.error('restartListeningBtn not found in startListening error handler');
         }
       }
     }
@@ -904,9 +923,13 @@
           startPracticeBtn.classList.remove('bg-gray-400', 'cursor-not-allowed');
           startPracticeBtn.classList.add('bg-[#373D8D]', 'hover:bg-[#2A3171]');
           startPracticeBtn.disabled = false;
+        } else {
+          console.error('startPracticeBtn not found in recognition.onerror');
         }
         if (restartListeningBtn) {
           restartListeningBtn.classList.remove('hidden');
+        } else {
+          console.error('restartListeningBtn not found in recognition.onerror');
         }
       };
 
@@ -920,9 +943,13 @@
             startPracticeBtn.classList.remove('bg-gray-400', 'cursor-not-allowed');
             startPracticeBtn.classList.add('bg-[#373D8D]', 'hover:bg-[#2A3171]');
             startPracticeBtn.disabled = false;
+          } else {
+            console.error('startPracticeBtn not found in recognition.onend');
           }
           if (restartListeningBtn) {
             restartListeningBtn.classList.remove('hidden');
+          } else {
+            console.error('restartListeningBtn not found in recognition.onend');
           }
           return;
         }
@@ -939,9 +966,13 @@
                 startPracticeBtn.classList.remove('bg-gray-400', 'cursor-not-allowed');
                 startPracticeBtn.classList.add('bg-[#373D8D]', 'hover:bg-[#2A3171]');
                 startPracticeBtn.disabled = false;
+              } else {
+                console.error('startPracticeBtn not found in recognition.onend error handler');
               }
               if (restartListeningBtn) {
                 restartListeningBtn.classList.remove('hidden');
+              } else {
+                console.error('restartListeningBtn not found in recognition.onend error handler');
               }
             }
           }, 500);
